@@ -3,12 +3,12 @@ from parser.init_parser import init_parser
 def init_java_parser():
     return init_parser('java')
 
-def check_method_annotations(code, start_line, end_line):
+def check_method_annotations(code):
     parser = init_java_parser()
     tree = parser.parse(bytes(code, 'utf8'))
 
     root_node = tree.root_node
-    annotation_nodes = find_nodes_by_type(root_node, 'annotation')
+    annotation_nodes = find_nodes_by_types(root_node, ['annotation', 'marker_annotation'])
 
     api_ignore = any('@ApiIgnore' in node.text.decode('utf8') for node in annotation_nodes)
     if api_ignore:
@@ -24,9 +24,9 @@ def check_method_annotations(code, start_line, end_line):
     if 'value' not in api_operation_content:
         return False, "Missing value in @ApiOperation annotation."
 
-    param_nodes = find_nodes_by_type(root_node, 'formal_parameter')
+    param_nodes = find_nodes_by_types(root_node, 'formal_parameter')
     for param_node in param_nodes:
-        param_annotations = find_nodes_by_type(param_node, 'annotation')
+        param_annotations = find_nodes_by_types(param_node, ['annotation', 'marker_annotation'])
         has_request_body = any('@RequestBody' in node.text.decode('utf8') for node in param_annotations)
         if not has_request_body:
             api_param = next((node for node in param_annotations if '@ApiParam' in node.text.decode('utf8')), None)
@@ -34,18 +34,22 @@ def check_method_annotations(code, start_line, end_line):
                 return False, "Missing @ApiParam annotation for parameter."
             
             api_param_content = api_param.text.decode('utf8')
-            missing_fields = [field for field in ["name", "value", "defaultValue", "required", "example"] if field not in api_param_content]
+            missing_fields = [field for field in ["value", "required", "example"] if field not in api_param_content]
             if missing_fields:
                 return False, f"Missing fields in @ApiParam annotation for parameter: {', '.join(missing_fields)}"
             
     return True, "Swagger annotations are compliant."
 
-def find_nodes_by_type(root_node, node_type):
+def find_nodes_by_types(root_node, node_types):
+    if not isinstance(node_types, list):
+        node_types = [node_types]
+
     nodes = []
     def collect_nodes(node):
-        if node.type == node_type:
+        if node.type in node_types:
             nodes.append(node)
         for child in node.children:
             collect_nodes(child)
+
     collect_nodes(root_node)
     return nodes

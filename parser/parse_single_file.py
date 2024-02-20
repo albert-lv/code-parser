@@ -14,8 +14,10 @@ def find_annotated_methods(tree, content, annotations):
     cursor = tree.walk()
     results = []
 
+    content_bytes = content.encode('utf-8')
+
     def get_text(node):
-        return content[node.start_byte:node.end_byte]
+        return content_bytes[node.start_byte:node.end_byte].decode('utf-8')
     
     def extract_methods(node):
         if not node.children:
@@ -24,10 +26,10 @@ def find_annotated_methods(tree, content, annotations):
         if node.type == 'method_declaration':
             for child in node.children:
                 if child.type == 'modifiers' and any(a in get_text(child) for a in annotations):
-                    start_line = content[:node.start_byte].count('\n') + 1
-                    end_line = content[:node.end_byte].count('\n') + 1
+                    start_line, _ = node.start_point
+                    end_line, _ = node.end_point
                     method_code = get_text(node).strip()
-                    results.append({'start_line': start_line, 'end_line': end_line, 'code': method_code})
+                    results.append({'start_line': start_line + 1, 'end_line': end_line + 1, 'code': method_code})
                     break
             
         for n in node.children:

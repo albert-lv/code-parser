@@ -13,7 +13,7 @@ def main(repo_path, old_version, new_version, annotations=['@RequestMapping', '@
             end_line = method['end_line']
             print(f"Method from line {start_line} to {end_line}:")
             print(code)
-            is_compliant, message = check_method_annotations(code, start_line, end_line)
+            is_compliant, message = check_method_annotations(code)
             if not is_compliant:
                 non_compliant_methods.append((file_path, method, message)) 
                 print(f"WARNING: {message}")
