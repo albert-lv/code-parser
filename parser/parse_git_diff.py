@@ -16,7 +16,7 @@ def parse_diff(repo_path, old_version, new_version):
             file_changes[current_file] = []
 
         hunk_match = hunk_pattern.match(line)
-        if hunk_match:
+        if file_match and hunk_match:
             start_line = int(hunk_match.group(1))
             line_count = hunk_match.group(2)
             line_count = int(line_count) if line_count else 1
