@@ -6,22 +6,30 @@ def parse_diff(repo_path, old_version, new_version):
 
     file_changes = {}
     file_pattern = re.compile(r'^\+\+\+ b/(.+)')
+    delete_file_pattern = re.compile(r'^\+\+\+ /dev/null')
     hunk_pattern = re.compile(r'^@@ -(?:\d+)(?:,\d+)? \+(\d+)(?:,(\d+))? @@')
 
     current_file = None
     for line in diff_output.splitlines():
         file_match = file_pattern.match(line)
+        delete_file_match = delete_file_pattern.match(line)
+
         if file_match:
             current_file = file_match.group(1)
             file_changes[current_file] = []
+        
+        if delete_file_match:
+            current_file = None
 
-        hunk_match = hunk_pattern.match(line)
-        if file_match and hunk_match:
-            start_line = int(hunk_match.group(1))
-            line_count = hunk_match.group(2)
-            line_count = int(line_count) if line_count else 1
-            end_line = start_line + line_count - 1
-            file_changes[current_file].append((start_line, end_line))
+        if current_file:
+            hunk_match = hunk_pattern.match(line)
+            
+            if file_match and hunk_match:
+                start_line = int(hunk_match.group(1))
+                line_count = hunk_match.group(2)
+                line_count = int(line_count) if line_count else 1
+                end_line = start_line + line_count - 1
+                file_changes[current_file].append((start_line, end_line))
 
     return file_changes
 
