@@ -1,77 +1,104 @@
 # Code Parser
 
-[中文文档](README.zh-CN.md)
+[![CI](https://github.com/albert-lv/code-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/albert-lv/code-parser/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![tree-sitter](https://img.shields.io/badge/powered%20by-tree--sitter-green.svg)](https://tree-sitter.github.io/tree-sitter/)
 
-A Python-based code analysis tool that leverages tree-sitter to parse and analyze Java code changes in Git repositories. This tool is particularly useful for identifying modified controller methods and validating Swagger annotations in Java Spring applications.
+A Python-based static analysis tool built on [tree-sitter](https://tree-sitter.github.io/tree-sitter/) that parses Java code changes in Git repositories. Designed for code reviewers and CI/CD pipelines who need to identify modified Spring controller methods and validate Swagger/OpenAPI annotations automatically.
 
-## Features
+> **Languages**: [English](README.md) | [中文](README.zh-CN.md)
 
-- **Git Diff Analysis**: Parse git diffs to identify changed files and line ranges
-- **Java Code Parsing**: Use tree-sitter to parse Java source files and extract method declarations
-- **Controller Method Detection**: Find modified controller methods based on annotations and file naming patterns
-- **Swagger Annotation Validation**: Validate that controller methods have proper Swagger/OpenAPI annotations
-- **Reusable Components**: Modular design with reusable git and parser utilities
+## ✨ Features
 
-## Main Use Cases
+- **Git Diff Analysis** — Parse git diffs to identify changed files and line ranges.
+- **Java Code Parsing** — Use tree-sitter to parse Java source files and extract method declarations.
+- **Controller Method Detection** — Find modified controller methods based on Spring annotations and file naming patterns.
+- **Swagger Annotation Validation** — Validate that controller methods have proper Swagger/OpenAPI annotations.
+- **Reusable Components** — Modular design with reusable git and parser utilities.
+- **CI/CD Ready** — Non-zero exit code when violations are found, perfect for pre-merge checks.
 
-### 1. Finding Changed Controller Methods
-Identify which controller methods were modified between two git revisions, useful for code review and impact analysis.
+## 🚀 Quick Start
 
-### 2. Swagger Annotation Compliance
-Automatically validate that modified controller methods follow Swagger annotation standards:
-- Methods must have `@ApiOperation` with `httpMethod` and `value` fields
-- Parameters need `@ApiParam` annotation (unless annotated with `@RequestBody`)
-- Required fields: `name`, `value`, `required`, and `example`
+### Installation
 
-## Dependencies
-
-### Python Libraries
-- **tree-sitter**: Code parsing library (requires tree-sitter Python bindings)
-- **subprocess**: For executing git commands (built-in)
-- **re**: For regex pattern matching (built-in)
-
-### External Tools
-- **Git**: Required for repository operations
-- **PyInstaller**: Optional, for building standalone executables
-
-### Tree-sitter Languages
-- tree-sitter-java
-- tree-sitter-python
-
-The project includes pre-compiled tree-sitter language libraries in `language/my-languages.so`.
-
-## Installation
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/albert-lv/code-parser.git
 cd code-parser
+pip install -r requirements.txt
 ```
 
-2. Install Python dependencies:
-```bash
-pip install tree-sitter
-```
-
-3. (Optional) Build the language library if you need to update it:
-```bash
-python init_library.py
-```
-
-## Usage
+> Optional: rebuild the tree-sitter language library if you add new languages:
+> ```bash
+> python init_library.py
+> ```
 
 ### Basic Usage
 
-Run the main script to check changed controller methods and their Swagger annotations:
+Run the CLI and enter your repository details:
 
 ```bash
 python main.py
 ```
 
-You'll be prompted to enter:
+You will be prompted for:
 - Repository path
 - Old version (commit SHA, branch, or tag)
 - New version (commit SHA, branch, or tag)
+
+### Programmatic Usage
+
+```python
+from find_changed_controller import find_changed_controller_methods
+
+changed = find_changed_controller_methods(
+    repo_path="/path/to/repo",
+    old_version="main~1",
+    new_version="main",
+    annotations=["@RequestMapping", "@GetMapping", "@PostMapping"],
+    controller_keywords=["Controller", "Rest", "Api"],
+)
+```
+
+## 📋 Validation Rules
+
+When `check_swagger_annotations.py` is enabled, modified controller methods are checked for:
+
+| Rule | Requirement |
+|------|-------------|
+| `@ApiOperation` | Must include `httpMethod` and `value` |
+| `@ApiParam` | Required on parameters unless annotated with `@RequestBody` |
+| `@ApiParam` fields | Must include `name`, `value`, `required`, and `example` |
+
+## 📚 Detailed Documentation
+
+### Main Use Cases
+
+#### 1. Finding Changed Controller Methods
+Identify which controller methods were modified between two git revisions, useful for code review and impact analysis.
+
+#### 2. Swagger Annotation Compliance
+Automatically validate that modified controller methods follow Swagger annotation standards:
+- Methods must have `@ApiOperation` with `httpMethod` and `value` fields
+- Parameters need `@ApiParam` annotation (unless annotated with `@RequestBody`)
+- Required fields: `name`, `value`, `required`, and `example`
+
+### Dependencies
+
+#### Python Libraries
+- **tree-sitter**: Code parsing library (requires tree-sitter Python bindings)
+- **subprocess**: For executing git commands (built-in)
+- **re**: For regex pattern matching (built-in)
+
+#### External Tools
+- **Git**: Required for repository operations
+- **PyInstaller**: Optional, for building standalone executables
+
+#### Tree-sitter Languages
+- tree-sitter-java
+- tree-sitter-python
+
+The project includes pre-compiled tree-sitter language libraries in `language/my-languages.so`.
 
 ### Using Individual Modules
 
@@ -125,43 +152,43 @@ public User createUser(@ApiParam(name = "user", value = "User info", required = 
 is_compliant, message = check_method_annotations(code)
 ```
 
-## Reusable Components
+### Reusable Components
 
-### Git Module (`git/`)
+#### Git Module (`git/`)
 
-#### `git_diff.py`
+##### `git_diff.py`
 - **Function**: `run_git_diff(repo_path, old_version, new_version)`
 - **Purpose**: Execute git diff command and return unified diff output
 - **Returns**: String containing diff output
 - **Reusable for**: Any project needing to analyze git diffs
 
-#### `git_show_file.py`
+##### `git_show_file.py`
 - **Function**: `get_single_file(repo_path, revision, file_path)`
 - **Purpose**: Retrieve file content at a specific git revision
 - **Returns**: String containing file content
 - **Reusable for**: Any project needing to access historical file versions
 
-### Parser Module (`parser/`)
+#### Parser Module (`parser/`)
 
-#### `init_parser.py`
+##### `init_parser.py`
 - **Function**: `init_parser(language_name)`
 - **Purpose**: Initialize a tree-sitter parser for a specific language
 - **Returns**: Configured Parser instance
 - **Reusable for**: Any project using tree-sitter for code parsing
 
-#### `parse_git_diff.py`
+##### `parse_git_diff.py`
 - **Function**: `parse_diff(repo_path, old_version, new_version)`
 - **Purpose**: Parse git diff output to extract changed files and line ranges
 - **Returns**: Dictionary mapping file paths to list of (start_line, end_line) tuples
 - **Reusable for**: Projects analyzing code changes, code review tools, CI/CD pipelines
 
-#### `parse_single_file.py`
+##### `parse_single_file.py`
 - **Function**: `find_annotated_methods(tree, content, annotations)`
 - **Purpose**: Extract methods with specific annotations from parsed AST
 - **Returns**: List of method information dictionaries
 - **Reusable for**: Java static analysis tools, documentation generators, code metrics tools
 
-## Building Standalone Executable
+### Building Standalone Executable
 
 To build a standalone executable using PyInstaller:
 
@@ -171,7 +198,7 @@ pyinstaller --onefile --name="CodeParser" --paths="/path/to/code-parser" main.py
 
 **Important**: The executable requires `language/my-languages.so` to be present in the same directory as the executable.
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 code-parser/
@@ -187,13 +214,14 @@ code-parser/
 ├── vendor/                       # Tree-sitter grammar submodules
 │   ├── tree-sitter-java/
 │   └── tree-sitter-python/
-├── main.py                       # Main entry point
+├── example/                      # Example repositories for testing
+├── main.py                       # CLI entry point
 ├── find_changed_controller.py   # Controller method finder
 ├── check_swagger_annotations.py # Swagger validation
 └── init_library.py              # Language library builder
 ```
 
-## Extension Points
+## 🔌 Extension Points
 
 ### Adding New Languages
 
@@ -224,14 +252,14 @@ Modify the `annotations` list in `main.py` or when calling functions to support 
 annotations = ['@MyCustomAnnotation', '@AnotherAnnotation']
 ```
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome bug reports, feature suggestions, and pull requests. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).
 
-## Author
+## 🔗 Related Keywords
 
-Albert Lv
+`static-analysis` `tree-sitter` `java` `spring-boot` `swagger` `openapi` `git-diff` `code-review` `ci-cd` `controller-methods` `annotation-validation`

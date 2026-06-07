@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "code-parser"
+version = "0.1.0"
+description = "Static analysis tool for Java Spring controller methods and Swagger annotation validation using tree-sitter."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Albert Lv", email = "albert.lv@example.com"}
+]
+keywords = [
+    "static-analysis",
+    "tree-sitter",
+    "java",
+    "spring-boot",
+    "swagger",
+    "openapi",
+    "git-diff",
+    "code-review",
+    "ci-cd",
+    "annotation-validation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "tree-sitter>=0.20.0",
+]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/albert-lv/code-parser"
+Documentation = "https://github.com/albert-lv/code-parser#readme"
+Repository = "https://github.com/albert-lv/code-parser.git"
+Issues = "https://github.com/albert-lv/code-parser/issues"
+
+[tool.setuptools]
+packages = ["git", "parser"]
